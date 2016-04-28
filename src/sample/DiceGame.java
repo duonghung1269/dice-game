@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.Timer;
 
 import java.util.*;
 
@@ -24,6 +25,7 @@ public class DiceGame extends JFrame{
     private JPanel panel1;
     private JPanel panel2;
     private JPanel panel3;
+    private JPanel dicePanel; // animation panel
     private JPanel panel4, panel4b;
     private JPanel panel5;
     private JPanel panel6;
@@ -83,6 +85,23 @@ public class DiceGame extends JFrame{
     
     private JButton reset;
     
+    // store 6 faces of a dice
+    private Dice[] diceFaces;
+    
+    {
+    	diceFaces = new Dice[6];
+    	for (int i = 0; i < 6; i++) {
+    		int diceValue = i + 1;
+    		Image img = ImageIO.read(getClass().getResource("dice-" + diceValue + ".png"));
+    		Dice dice = new Dice(diceValue, new ImageIcon(img));
+    		diceFaces[i] = dice;
+    	}
+    }
+    
+    private void updateDiceImage(int diceValue) {
+        diceImageIcon.setIcon(diceFaces[diceValue].getIcon());
+    }
+    
     public DiceGame() throws IOException{
         
         
@@ -132,21 +151,7 @@ public class DiceGame extends JFrame{
         panel1.add(playSub1);
         
         
-        playSub1.addActionListener(new ActionListener() {
-            
-            
-            public void actionPerformed(ActionEvent e)
-            {
-                //Execute when button is pressed
-                click1 = 1;
-                user_name_1 = name1.getText();
-                sub_name_1 = new Label(user_name_1);
-                p_names_1.setText(user_name_1);
-                name1.setText(" ");
-                name1.setEditable(false);
-                playSub1.setEnabled(false);
-            }
-        });
+        registerPlayer1SubmitAction();
         
         //Get Player 2 information
         panel2 = new JPanel(new FlowLayout()); //For getting player info
@@ -162,34 +167,21 @@ public class DiceGame extends JFrame{
         panel2.add(name2);
         panel2.add(playSub2);
         
-        playSub2.addActionListener(new ActionListener() {
-            
-            public void actionPerformed(ActionEvent e)
-            {
-                //Execute when button is pressed
-                click2 = 1;
-                user_name_2 = name2.getText();
-                p_names_2.setText(user_name_2);
-                name2.setText(" ");
-                name2.setEditable(false);
-                playSub2.setEnabled(false);
-                
-            }
-        });
+        registerPlayer2SubmitAction();
         
         //Start game
         panel3 = new JPanel(new FlowLayout()); //For getting player info
         panelGame.add(panel3, panel3.CENTER_ALIGNMENT);
         panel3.setBackground(Color.BLACK);
-        
-        Image img = ImageIO.read(getClass().getResource("dice-six-faces-five.png"));
-        diceImageIcon = new JLabel();
-        diceImageIcon.setIcon(new ImageIcon(img));
-//        diceImageIcon.setDescription("dice-six-faces-five.png");
-        panel3.add(diceImageIcon);
-        
         start = new Button("START");
         panel3.add(start);
+        
+        // Initialize dice panel to display animation
+        dicePanel = new JPanel(new FlowLayout());
+        panelGame.add(dicePanel, dicePanel.CENTER_ALIGNMENT);
+        dicePanel.setBackground(Color.BLACK);
+        diceImageIcon = new JLabel();
+        dicePanel.add(diceImageIcon);
         
         //Roll
         panel4 = new JPanel(new FlowLayout()); //For getting player info
@@ -212,14 +204,250 @@ public class DiceGame extends JFrame{
         panel4.add(rollNum);
         panel4.add(showRoll);
         
-        roll.addActionListener(new ActionListener() {
+        registerRollAction();
+        
+        
+        //Player Stats
+        panel4b = new JPanel(new FlowLayout()); //For getting player info
+        panelGame.add(panel4b, panel4b.CENTER_ALIGNMENT);
+        panel4b.setBackground(Color.BLACK);
+        
+        player_names_1 = new Label("     Player 1:");
+        player_names_1.setForeground(Color.WHITE);
+        
+        player_names_2 = new Label("Player 2:");
+        player_names_2.setForeground(Color.WHITE);
+        
+        p_names_1 = new JTextField(5);
+        p_names_2 = new JTextField(5);
+        
+        p_names_1.setBorder(border1);
+        p_names_2.setBorder(border1);
+        
+        p_names_1.setEditable(false);
+        p_names_2.setEditable(false);
+        
+        panel4b.add(player_names_1);
+        panel4b.add(p_names_1);
+        panel4b.add(player_names_2);
+        panel4b.add(p_names_2);
+        
+        //Universal lab variable
+        tab_life = new Label("            ");
+        tab_pts = new Label("            ");
+        
+        //Life points stats
+        panel5 = new JPanel(new FlowLayout()); //For getting player info
+        panelGame.add(panel5, panel5.CENTER_ALIGNMENT);
+        panel5.setBackground(Color.BLACK);
+        
+        
+        life_lbl = new Label(" Life points: ");
+        life_lbl.setForeground(Color.white);
+        life_field_1 = new JTextField(5);
+        life_field_2 = new JTextField(5);
+        
+        life_field_1.setBorder(border2);
+        life_field_2.setBorder(border2);
+        
+        life_field_1.setEditable(false);
+        life_field_2.setEditable(false);
+        
+        panel5.add(life_lbl);
+        panel5.add(life_field_1);
+        panel5.add(tab_life);
+        panel5.add(life_field_2);
+        
+        
+        //Points output
+        panel6 = new JPanel(new FlowLayout()); //For getting player info
+        panelGame.add(panel6, panel6.CENTER_ALIGNMENT);
+        panel6.setBackground(Color.BLACK);
+        
+        pts_lbl = new Label("Total points: ");
+        pts_lbl.setForeground(Color.WHITE);
+        pts_field_1 = new JTextField(5);
+        pts_field_2 = new JTextField(5);
+        
+        pts_field_1.setBorder(border2);
+        pts_field_2.setBorder(border2);
+        
+        pts_field_1.setEditable(false);
+        pts_field_2.setEditable(false);
+        
+        panel6.add(pts_lbl);
+        panel6.add(pts_field_1);
+        panel6.add(tab_pts);
+        panel6.add(pts_field_2);
+        
+        registerStartAction();
+        
+        
+        //Game output/ Winner Declaration
+        panel7 = new JPanel(new FlowLayout()); //For getting player info
+        panelGame.add(panel7, panel7.CENTER_ALIGNMENT);
+        panel7.setBackground(Color.BLACK);
+        
+        winner = new JLabel("Winner: ");
+        winner.setForeground(Color.WHITE);
+        declare = new JTextField(15);
+        
+        declare.setBorder(border3);
+        declare.setEditable(false);
+        
+        panel7.add(winner);
+        panel7.add(declare);
+        
+        //Reset Game
+        panel8 = new JPanel(new FlowLayout()); //For getting player info
+        panelGame.add(panel8, panel8.CENTER_ALIGNMENT);
+        panel8.setBackground(Color.BLACK);
+        
+        reset = new JButton("RESET");
+        panel8.add(reset);
+        
+        registerResetAction();
+        
+        panelGame.setVisible(true);
+        
+        //Window listener
+        addWindowListener
+        (new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        }
+         );
+    }
+
+	private void registerResetAction() {
+		reset.addActionListener(new ActionListener() {
+            
+            public void actionPerformed(ActionEvent e)
+            {
+                //Execute when button is pressed
+                start.setEnabled(true);
+                
+                name1.setEditable(true);
+                playSub1.setEnabled(true);
+                
+                name2.setEditable(true);
+                playSub2.setEnabled(true);
+                
+                p_names_2.setText(" ");
+                p_names_1.setText(" ");
+                declare.setText(" ");
+                showRoll.setText(" ");
+                
+                p_names_1.setBackground(Color.WHITE);
+                p_names_2.setBackground(Color.WHITE);
+                
+                life_pt_1 = 3;
+                life_pt_2 = 3;
+                pts_1 = 0;
+                pts_2 = 0;
+                
+                life_field_1.setText(" ");
+                life_field_2.setText(" ");
+                
+                pts_field_1.setText(" ");
+                pts_field_2.setText(" ");
+                
+                
+                
+            }
+        });
+	}
+
+	private void registerStartAction() {
+		start.addActionListener(new ActionListener() {
             
             public void actionPerformed(ActionEvent e)
             {
                 //Execute when button is pressed
                 
+                life_field_1.setText("3");
+                life_field_2.setText("3");
+                
+                pts_field_1.setText("0");
+                pts_field_2.setText("0");
+                
+                start.setEnabled(false);
+                roll.setEnabled(true);
+                
+                
+            }
+        });
+	}
+
+	private void registerPlayer2SubmitAction() {
+		playSub2.addActionListener(new ActionListener() {
+            
+            public void actionPerformed(ActionEvent e)
+            {
+                //Execute when button is pressed
+                click2 = 1;
+                user_name_2 = name2.getText();
+                p_names_2.setText(user_name_2);
+                name2.setText(" ");
+                name2.setEditable(false);
+                playSub2.setEnabled(false);
+                
+            }
+        });
+	}
+
+	private void registerPlayer1SubmitAction() {
+		playSub1.addActionListener(new ActionListener() {
+            
+            
+            public void actionPerformed(ActionEvent e)
+            {
+                //Execute when button is pressed
+                click1 = 1;
+                user_name_1 = name1.getText();
+                sub_name_1 = new Label(user_name_1);
+                p_names_1.setText(user_name_1);
+                name1.setText(" ");
+                name1.setEditable(false);
+                playSub1.setEnabled(false);
+            }
+        });
+	}
+
+	private void registerRollAction() {
+		roll.addActionListener(new ActionListener() {
+            
+            public void actionPerformed(ActionEvent e)
+            {
+            	roll.setEnabled(false);
+                Timer timer1 = new Timer(100, new ActionListener() {
+        			private int counter = 0;
+        			private int randomRollNumber = 5 + elementGenerator.nextInt(5);
+        			
+        			@Override
+        			public void actionPerformed(ActionEvent timerEvent) {
+        				if (counter < randomRollNumber) {
+        					counter++;
+            				random = elementGenerator.nextInt(6);
+            				updateDiceImage(random);
+            				System.out.println("dice value: " + (random + 1) );
+        				} else {
+        					System.out.println("last round");
+        					roll.setEnabled(true);
+        					((Timer)timerEvent.getSource()).stop();
+        					doAfterRoll();
+        				}
+        			}
+        		});
+                timer1.start();
+            	
+                
+                
+            }
+
+            private void doAfterRoll() {
                 turn++;
-                random = elementGenerator.nextInt(6);
                 
                 if(random == 0){
                     element = "FIRE";
@@ -487,176 +715,21 @@ public class DiceGame extends JFrame{
                     turn_1 = 0;
                     turn_2 = 0;
                 }
-                
             }
-        });
-        
-        
-        //Player Stats
-        panel4b = new JPanel(new FlowLayout()); //For getting player info
-        panelGame.add(panel4b, panel4b.CENTER_ALIGNMENT);
-        panel4b.setBackground(Color.BLACK);
-        
-        player_names_1 = new Label("     Player 1:");
-        player_names_1.setForeground(Color.WHITE);
-        
-        player_names_2 = new Label("Player 2:");
-        player_names_2.setForeground(Color.WHITE);
-        
-        p_names_1 = new JTextField(5);
-        p_names_2 = new JTextField(5);
-        
-        p_names_1.setBorder(border1);
-        p_names_2.setBorder(border1);
-        
-        p_names_1.setEditable(false);
-        p_names_2.setEditable(false);
-        
-        panel4b.add(player_names_1);
-        panel4b.add(p_names_1);
-        panel4b.add(player_names_2);
-        panel4b.add(p_names_2);
-        
-        //Universal lab variable
-        tab_life = new Label("            ");
-        tab_pts = new Label("            ");
-        
-        //Life points stats
-        panel5 = new JPanel(new FlowLayout()); //For getting player info
-        panelGame.add(panel5, panel5.CENTER_ALIGNMENT);
-        panel5.setBackground(Color.BLACK);
-        
-        
-        life_lbl = new Label(" Life points: ");
-        life_lbl.setForeground(Color.white);
-        life_field_1 = new JTextField(5);
-        life_field_2 = new JTextField(5);
-        
-        life_field_1.setBorder(border2);
-        life_field_2.setBorder(border2);
-        
-        life_field_1.setEditable(false);
-        life_field_2.setEditable(false);
-        
-        panel5.add(life_lbl);
-        panel5.add(life_field_1);
-        panel5.add(tab_life);
-        panel5.add(life_field_2);
-        
-        
-        //Points output
-        panel6 = new JPanel(new FlowLayout()); //For getting player info
-        panelGame.add(panel6, panel6.CENTER_ALIGNMENT);
-        panel6.setBackground(Color.BLACK);
-        
-        pts_lbl = new Label("Total points: ");
-        pts_lbl.setForeground(Color.WHITE);
-        pts_field_1 = new JTextField(5);
-        pts_field_2 = new JTextField(5);
-        
-        pts_field_1.setBorder(border2);
-        pts_field_2.setBorder(border2);
-        
-        pts_field_1.setEditable(false);
-        pts_field_2.setEditable(false);
-        
-        panel6.add(pts_lbl);
-        panel6.add(pts_field_1);
-        panel6.add(tab_pts);
-        panel6.add(pts_field_2);
-        
-        start.addActionListener(new ActionListener() {
             
-            public void actionPerformed(ActionEvent e)
-            {
-                //Execute when button is pressed
-                
-                life_field_1.setText("3");
-                life_field_2.setText("3");
-                
-                pts_field_1.setText("0");
-                pts_field_2.setText("0");
-                
-                start.setEnabled(false);
-                roll.setEnabled(true);
-                
-                
-            }
+//        	private void rollDiceAnimation(Timer timer1) {
+//        		timer1.start();
+//        		try {
+//        			Thread.sleep(3000);
+//        		} catch (InterruptedException e) {
+//        			System.out.println("InterrupException: " + e);
+//        		}
+//        		timer1.stop();
+//        	}
         });
-        
-        
-        //Game output/ Winner Declaration
-        panel7 = new JPanel(new FlowLayout()); //For getting player info
-        panelGame.add(panel7, panel7.CENTER_ALIGNMENT);
-        panel7.setBackground(Color.BLACK);
-        
-        winner = new JLabel("Winner: ");
-        winner.setForeground(Color.WHITE);
-        declare = new JTextField(15);
-        
-        declare.setBorder(border3);
-        declare.setEditable(false);
-        
-        panel7.add(winner);
-        panel7.add(declare);
-        
-        //Reset Game
-        panel8 = new JPanel(new FlowLayout()); //For getting player info
-        panelGame.add(panel8, panel8.CENTER_ALIGNMENT);
-        panel8.setBackground(Color.BLACK);
-        
-        reset = new JButton("RESET");
-        panel8.add(reset);
-        
-        reset.addActionListener(new ActionListener() {
-            
-            public void actionPerformed(ActionEvent e)
-            {
-                //Execute when button is pressed
-                start.setEnabled(true);
-                
-                name1.setEditable(true);
-                playSub1.setEnabled(true);
-                
-                name2.setEditable(true);
-                playSub2.setEnabled(true);
-                
-                p_names_2.setText(" ");
-                p_names_1.setText(" ");
-                declare.setText(" ");
-                showRoll.setText(" ");
-                
-                p_names_1.setBackground(Color.WHITE);
-                p_names_2.setBackground(Color.WHITE);
-                
-                life_pt_1 = 3;
-                life_pt_2 = 3;
-                pts_1 = 0;
-                pts_2 = 0;
-                
-                life_field_1.setText(" ");
-                life_field_2.setText(" ");
-                
-                pts_field_1.setText(" ");
-                pts_field_2.setText(" ");
-                
-                
-                
-            }
-        });
-        
-        panelGame.setVisible(true);
-        
-        //Window listener
-        addWindowListener
-        (new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                System.exit(0);
-            }
-        }
-         );
-    }
+	}
     
+
     
     public static void main(String[] args) throws IOException{
         
