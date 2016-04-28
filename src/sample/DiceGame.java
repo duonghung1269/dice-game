@@ -431,6 +431,25 @@ public class DiceGame extends JFrame{
         					counter++;
             				random = elementGenerator.nextInt(6);
             				updateDiceImage(random);
+            				if(random == 0){
+                                element = "FIRE";
+                                showRoll.setText("FIRE");
+                            }else if(random == 1){
+                                element = "WATER";
+                                showRoll.setText("WATER");
+                            }else if(random == 2){
+                                element = "ELECTRIC";
+                                showRoll.setText("ELECTRIC");
+                            }else if(random == 3){
+                                element = "GRASS";
+                                showRoll.setText("GRASS");
+                            }else if(random == 4){
+                                element = "ICE";
+                                showRoll.setText("ICE");
+                            }else if(random == 5){
+                                element = "EARTH";
+                                showRoll.setText("EARTH");
+                            }
             				System.out.println("dice value: " + (random + 1) );
         				} else {
         					System.out.println("last round");
@@ -441,33 +460,11 @@ public class DiceGame extends JFrame{
         			}
         		});
                 timer1.start();
-            	
-                
                 
             }
 
             private void doAfterRoll() {
                 turn++;
-                
-                if(random == 0){
-                    element = "FIRE";
-                    showRoll.setText("FIRE");
-                }else if(random == 1){
-                    element = "WATER";
-                    showRoll.setText("WATER");
-                }else if(random == 2){
-                    element = "ELECTRIC";
-                    showRoll.setText("ELECTRIC");
-                }else if(random == 3){
-                    element = "GRASS";
-                    showRoll.setText("GRASS");
-                }else if(random == 4){
-                    element = "ICE";
-                    showRoll.setText("ICE");
-                }else if(random == 5){
-                    element = "EARTH";
-                    showRoll.setText("EARTH");
-                }
                 
                 //If player 1 rolls
                 if(turn % 2 == 1)
