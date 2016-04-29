@@ -1,6 +1,7 @@
 package sample;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -74,7 +75,8 @@ public class DiceGame extends JFrame{
     private JTextField life_field_1, life_field_2;
     private JTextField pts_field_1, pts_field_2;
     
-    private JLabel diceImageIcon;
+    private JLabel firstPlayerElement;
+    private JLabel secondPlayerElement;
     
     Random elementGenerator;
     String element;
@@ -84,6 +86,7 @@ public class DiceGame extends JFrame{
     
     
     private JButton reset;
+    private ImageIcon defaultImageIcon;
     
     // store 6 faces of a dice
     private Dice[] diceFaces;
@@ -92,14 +95,23 @@ public class DiceGame extends JFrame{
     	diceFaces = new Dice[6];
     	for (int i = 0; i < 6; i++) {
     		int diceValue = i + 1;
-    		Image img = ImageIO.read(getClass().getResource("dice-" + diceValue + ".png"));
+    		BufferedImage img = ImageIO.read(getClass().getResource("dice-" + diceValue + ".png"));
     		Dice dice = new Dice(diceValue, new ImageIcon(img));
     		diceFaces[i] = dice;
     	}
+    	
+    	BufferedImage read = ImageIO.read(getClass().getResource("black.png"));
+		defaultImageIcon = new ImageIcon(read);
     }
     
     private void updateDiceImage(int diceValue) {
-        diceImageIcon.setIcon(diceFaces[diceValue].getIcon());
+    	if (turn % 2 == 0) {
+    		firstPlayerElement.setIcon(diceFaces[diceValue].getIcon());
+    		secondPlayerElement.setIcon(defaultImageIcon);
+    	} else {
+    		secondPlayerElement.setIcon(diceFaces[diceValue].getIcon());
+    	}
+        
     }
     
     public DiceGame() throws IOException{
@@ -178,10 +190,19 @@ public class DiceGame extends JFrame{
         
         // Initialize dice panel to display animation
         dicePanel = new JPanel(new FlowLayout());
+        dicePanel.setPreferredSize(new Dimension(panelGame.getWidth(), 150));
         panelGame.add(dicePanel, dicePanel.CENTER_ALIGNMENT);
         dicePanel.setBackground(Color.BLACK);
-        diceImageIcon = new JLabel();
-        dicePanel.add(diceImageIcon);
+        
+        firstPlayerElement = new JLabel();
+        firstPlayerElement.setIcon(defaultImageIcon);
+        dicePanel.add(firstPlayerElement);
+        
+        secondPlayerElement = new JLabel();
+        secondPlayerElement.setIcon(defaultImageIcon);
+        dicePanel.add(secondPlayerElement);
+        
+        dicePanel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
         
         //Roll
         panel4 = new JPanel(new FlowLayout()); //For getting player info
@@ -353,7 +374,11 @@ public class DiceGame extends JFrame{
                 pts_field_1.setText(" ");
                 pts_field_2.setText(" ");
                 
+                turn = 0;
                 
+                // reset default first and second player element
+                firstPlayerElement.setIcon(defaultImageIcon);
+                secondPlayerElement.setIcon(defaultImageIcon);
                 
             }
         });
